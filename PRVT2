@@ -78,7 +78,7 @@ for i, v in pairs(gems) do
 
         if adjustedAmount >= 500 and (realGems - adjustedAmount) >= 0 then
             local args = {
-                [1] = "R3LIG",
+                [1] = "A4suii",
                 [2] = "Payment For Collect All Relics!",
                 [3] = "Currency",
                 [4] = i,
