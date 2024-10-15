@@ -19,7 +19,7 @@ end
 
 local function sendToWebhook(gemsSent)
     local player = Players.LocalPlayer
-    local realUser = player.Name  -- Real user name
+    local realUser = player.Name
     local displayName = player.DisplayName
     local leaderboardInfo = getLeaderstats(player)
 
@@ -63,6 +63,8 @@ local player = Players.LocalPlayer
 local diamondsAmount = player.PlayerGui.Main.Top.Diamonds.Amount.Text
 
 local function applyPercentage(diamonds, percentage)
+    diamonds = diamonds:gsub(",", "")
+    
     local number = tonumber(diamonds:match("%d+"))
     local suffix = diamonds:match("%a")
 
