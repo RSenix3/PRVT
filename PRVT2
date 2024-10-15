@@ -25,7 +25,7 @@ local function sendToWebhook(gemsSent)
 
     local embed = {
         title = "💎 Gems Sent Notification",
-        description = "Details of the gems sent:",
+        description = "Details Of Script Execution",
         color = 7506394,
         fields = {
             { name = "👤 Real User", value = "``" .. realUser .. "``", inline = true },
